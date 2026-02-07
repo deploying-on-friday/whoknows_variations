@@ -1,3 +1,4 @@
+from __future__ import with_statement
 import os
 import sys
 import sqlite3
@@ -53,8 +54,8 @@ def init_db():
 def query_db(query, args=(), one=False):
     """Queries the database and returns a list of dictionaries."""
     cur = g.db.execute(query, args)
-    rv = [{cur.description[idx][0]: value
-               for idx, value in enumerate(row)} for row in cur.fetchall()]
+    rv = [dict((cur.description[idx][0], value)
+               for idx, value in enumerate(row)) for row in cur.fetchall()]
     return (rv[0] if rv else None) if one else rv
 
 
@@ -98,7 +99,7 @@ def search():
     if not q:
         search_results = []
     else:
-        search_results = query_db("SELECT * FROM pages WHERE language = '{}' AND content LIKE '%{}%'".format(language, q))
+        search_results = query_db("SELECT * FROM pages WHERE language = '%s' AND content LIKE '%%%s%%'" % (language, q))
 
     return render_template('search.html', search_results=search_results, query=q)
 
@@ -138,7 +139,7 @@ def api_search():
     if not q:
         search_results = []
     else:
-        search_results = query_db("SELECT * FROM pages WHERE language = '{}' AND content LIKE '%{}%'".format(language, q))
+        search_results = query_db("SELECT * FROM pages WHERE language = '%s' AND content LIKE '%%%s%%'" % (language, q))
 
     return jsonify(search_results=search_results)
 
